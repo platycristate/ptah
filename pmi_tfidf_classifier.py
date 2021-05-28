@@ -15,13 +15,12 @@ def tokenization(train_data):
     print("Tokenization....")
     for _, row in train_data.iterrows():
         #text = str(row['Abstract'])
-        text = row['Title'] + ' ' + str(row['Abstract'])
+        text = str(row['Title']) + ' ' + str(row['Abstract'])
         words = tokenize(text)
         tokenized_texts.append(words)
     return tokenized_texts
 
 # TFIDF (Term frequency and inverse document frequency)
-
 def get_word_stat(tokenized_texts):
     '''Words counts in documents
     finds in how many documents this word
