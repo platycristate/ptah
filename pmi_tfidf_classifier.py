@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 import spacy
-from collections import defaultdict
-
+from tqdm import tqdm
+from collections import defaultdict 
 nlp = spacy.load("en_core_sci_md", disable=['ner', 'parser'])
 
 def tokenize(string):
@@ -43,7 +43,7 @@ def get_doc_tfidf(words, word2text_count, N):
             idf = np.log(N/(word2text_count[word]))
             word2tfidf[word] += (1/num_words) * idf
         else:
-            word2tfidf[word] = 1
+            word2tfidf[word] = 0.1
     return word2tfidf
 
 def create_pmi_dict(tokenized_texts, targets, min_count=5):
@@ -67,14 +67,46 @@ def create_pmi_dict(tokenized_texts, targets, min_count=5):
     del d['tot']
     return d
 
+def call_NN_mode_pmiidf():
+    pass
+
+def calc_collinearity(word, words_dict, n=10):
+    new_word_emb = nlp(word).vector
+    pmi_new = 0
+    max_pmis_words = sorted(list(words_dict.items()), key=lambda x: x[1], reverse=True)[:n]
+    for w, pmi in max_pmis_words:
+        w_emb = nlp(w).vector
+        cos_similarity = \
+        np.dot(w_emb, new_word_emb)/(np.linalg.norm(w_emb) * np.linalg.norm(new_word_emb) + 1e-12)
+        pmi_new += cos_similarity * pmi
+    return pmi_new / n
+
+
+def create_tot_pmitfidf(words, words_pmis, word2tfidf):
+    tot_pmitfidf0 = []
+    tot_pmitfidf1 = []
+    for word in words:
+        if word in words_pmis[0]:
+            tot_pmitfidf0.append( words_pmis[0][word] * word2tfidf[word] )
+        else:
+            pmi0 = calc_collinearity(word, words_pmis[0])
+            tot_pmitfidf0.append( pmi0 )
+        if word in words_pmis[1]:
+            tot_pmitfidf1.append( words_pmis[1][word] * word2tfidf[word] )
+        else:
+            pmi1 = calc_collinearity(word, words_pmis[1])
+            tot_pmitfidf1.append( pmi1 )
+
+    return tot_pmitfidf0, tot_pmitfidf1
+
+
 def classify_pmi_based(words_pmis, word2text_count, tokenized_test_texts, N):
-    print("I am classifying....")
     results = np.zeros(len(tokenized_test_texts))
-    for idx, words in enumerate(tokenized_test_texts):
+    for idx, words in tqdm(enumerate(tokenized_test_texts)):
         word2tfidf = get_doc_tfidf(words, word2text_count, N)
-        # print(word2tfidf)
         # PMI - determines significance of the word for the class
         # TFIDF - determines significance of the word for the document
+        #tot_pmi0, tot_pmi1 = create_tot_pmitfidf(words, words_pmis, word2tfidf)
         tot_pmi0 = [ words_pmis[0][w] * word2tfidf[w] for w in set(words) if w in words_pmis[0] ]
         tot_pmi1 = [ words_pmis[1][w] * word2tfidf[w] for w in set(words) if w in words_pmis[1] ]
         pmi0 = np.sum(tot_pmi0)
