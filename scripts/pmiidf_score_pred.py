@@ -55,32 +55,31 @@ word_embeddings = [torch.from_numpy(nlp(i[0]).vector).unsqueeze(0)
 
 word_embeddings = torch.cat(word_embeddings, dim=0)
 print(word_embeddings.shape)
-idx = int( word_embeddings.shape[0] * 0.2 )
-test_embeddings = word_embeddings[:idx]
-train_embeddings = word_embeddings[idx:]
+idx = int( word_embeddings.shape[0] * 0.8 )
+train_embeddings = word_embeddings[:idx]
+test_embeddings = word_embeddings[idx:]
 
 pmiidf = torch.cat([torch.Tensor([i[1],i[2]]).unsqueeze(0)
                     for i in word2pmiidf], dim=0)
 print(pmiidf.shape)
-test_pmiidf = pmiidf[:idx]
-train_pmiidf = pmiidf[idx:]
+test_pmiidf = pmiidf[idx:]
+train_pmiidf = pmiidf[:idx]
 
 
 loss = torch.nn.MSELoss().to(device)
 
-
-dili_net = net2(100, 200, 2, lr=1e-4)
+dili_net = net2(300, 200, 2, lr=1e-3)
 dili_net.to(device)
 
 train2(dili_net, X=train_embeddings.to(device), Y=train_pmiidf.to(device),
         X_test=test_embeddings.to(device), Y_test=test_pmiidf.to(device),
         loss=loss,
-        batch_size=500, epochs=800)
+        batch_size=500, epochs=2000)
 
 test_preds = dili_net.forward( test_embeddings.to(device) )
 print(test_preds[:5])
 print(test_pmiidf[:5])
-torch.save(dili_net, path + "pmiidf_model.pt")
+#torch.save(dili_net, path + "pmiidf_model.pt")
 
 
 

@@ -29,27 +29,27 @@ def text_embeddings(text_tokenized, words_pmis, word2text_count, N):
     for words in tqdm(text_tokenized):
         word2tfidf = ptic.get_doc_tfidf(words, word2text_count, N)
         embedding = torch.FloatTensor(np.zeros( nlp(text_tokenized[0][0]).vector.shape[0] + 2)).to(device)
-        embedding = embedding.unsqueeze(0)
         pmi0 = 0;
         pmi1 = 0;
         for word in words:
-            word_emb = torch.FloatTensor( nlp(word).vector ).unsqueeze(0)
+            tf = len(words)
+            word_emb = torch.FloatTensor( nlp(word).vector )
             embedding[:200] += word_emb.to(device)
-            try:
+            if word in words_pmis[0]:
                 pmi0 += words_pmis[0][word] * word2tfidf[word]
+            if word in words_pmis[1]:
                 pmi1 += words_pmis[1][word] * word2tfidf[word]
-            except:
-                predicted_pmis = model.forward( word_emb ).detach().numpy().squeeze(0)
-                print(predicted_pmis)
-                pmi0 += predicted_pmis[0]
-                pmi1 += predicted_pmis[1]
+            else:
+                predicted_pmiidf = model.forward( word_emb ).detach().numpy()
+                pmi0 += predicted_pmiidf[0] * tf
+                pmi1 += predicted_pmiidf[1] * tf
         embedding[-1] = pmi0
         embedding[-2] = pmi1
         embeddings.append(embedding / len(words))
     return embeddings
 
 # texts to be converted to embeddings
-data = pd.read_csv(path + filename, sep="\t")
+data = pd.read_csv(path + filename, sep=",")
 
 # train data needed to generate pmi dictionary
 train_data = pd.read_csv(path + 'DILI_data.csv')
