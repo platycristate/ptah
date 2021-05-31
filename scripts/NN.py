@@ -7,9 +7,9 @@ class net(torch.nn.Module):
         super(net, self).__init__()
         self.layer1 = torch.nn.Linear(in_features, n_hidden_neurons)
         self.act1 = torch.nn.ReLU()
-        self.layer2 = torch.nn.Linear(n_hidden_neurons, int(n_hidden_neurons/1))
+        self.layer2 = torch.nn.Linear(n_hidden_neurons, int(n_hidden_neurons/3))
         self.act2 = torch.nn.ReLU()
-        self.layer3 = torch.nn.Linear(int(n_hidden_neurons/1), out_features)
+        self.layer3 = torch.nn.Linear(int(n_hidden_neurons/3), out_features)
         self.act_out = torch.nn.Sigmoid()
         self.lr = lr
         self.optimizer = torch.optim.Adam(net.parameters(self), lr=self.lr)
@@ -28,7 +28,7 @@ class net2(torch.nn.Module):
     def __init__(self, n_hidden_neurons, in_features, out_features, lr):
         super(net2, self).__init__()
         self.layer1 = torch.nn.Linear(in_features, n_hidden_neurons)
-        self.act1 = torch.nn.Tanh()
+        self.act1 = torch.nn.ReLU()
         self.layer2 = torch.nn.Linear(n_hidden_neurons, out_features)
         self.lr = lr
         self.optimizer = torch.optim.Adam(net2.parameters(self), lr=self.lr)
@@ -38,7 +38,6 @@ class net2(torch.nn.Module):
         x = self.act1(x)
         x = self.layer2(x)
         return x
-
 
 def train(dili_net, X, Y, X_test, Y_test, loss, batch_size=13, epochs=87):
     for epoch in range(epochs):
@@ -54,13 +53,13 @@ def train(dili_net, X, Y, X_test, Y_test, loss, batch_size=13, epochs=87):
             loss_value.backward()
             dili_net.optimizer.step()
 
-        if epoch % 2 == 0:
+        if epoch % 10 == 0:
             test_preds = dili_net.forward(X_test)
             test_preds = torch.where(test_preds > 0.5, 1, 0)
             print("epoch", epoch)
             accuracy = (test_preds == Y_test).cpu().float().mean().numpy()
             print("Accuracy:", accuracy)
-            if accuracy >= 0.9750:
+            if accuracy >= 0.95:
                 print("Accuracy:", accuracy)
                 a = input()
                 if a == 's':
@@ -78,9 +77,12 @@ def train2(dili_net, X, Y, X_test, Y_test, loss, batch_size=13, epochs=87):
             loss_value.backward()
             dili_net.optimizer.step()
 
-        if epoch % 5 == 0:
+        if epoch % 2 == 0:
             test_preds = dili_net.forward(X_test)
             print("epoch", epoch)
             loss_test = loss(test_preds, Y_test)
             print("Loss:", loss_test)
+            a = input()
+            if a == "s":
+                break
 

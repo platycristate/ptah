@@ -3,9 +3,9 @@ import numpy as np
 import spacy
 from tqdm import tqdm
 from collections import defaultdict
-nlp = spacy.load("en_core_sci_md", disable=['ner', 'parser'])
-path = "../data/"
 
+nlp = spacy.load("en_core_sci_lg", disable=['ner', 'parser'])
+path = "../data/"
 
 def tokenize(string):
     doc = nlp.make_doc(string)
@@ -113,6 +113,6 @@ def classify_pmi_based(words_pmis, word2text_count, tokenized_test_texts, N):
         pmi0 = np.sum(tot_pmi0)
         pmi1 = np.sum(tot_pmi1)
         diff = pmi1 - pmi0
-        if diff > 0.001:
+        if diff > 0.006:
             results[idx] = 1
     return results

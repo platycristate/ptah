@@ -15,14 +15,13 @@ path = "../data/"
 
 filename = sys.argv[1]
 output = sys.argv[2]
-
-spacy.prefer_gpu()
-nlp = spacy.load("en_core_sci_lg", disable=['ner', 'parser'])
-device = torch.device('cpu')
-
+#spacy.require_gpu()
+nlp = spacy.load("en_core_sci_lg", disable=['ner', 'parser', 'lemmatizer', 'attribute_ruler'])
+device = torch.device('cuda:0')
 # model that predicts PMI * IDF for words
 # that are not in the PMI dictionary
 model = torch.load(path + "pmiidf_model.pt")
+model.to(device)
 
 def text_embeddings(text_tokenized, words_pmis, word2text_count, N):
     embeddings = []
@@ -40,7 +39,7 @@ def text_embeddings(text_tokenized, words_pmis, word2text_count, N):
             if word in words_pmis[1]:
                 pmi1 += words_pmis[1][word] * word2tfidf[word]
             else:
-                predicted_pmiidf = model.forward( word_emb ).detach().numpy()
+                predicted_pmiidf = model.forward( word_emb.to(device) ).cpu().detach().numpy()
                 pmi0 += predicted_pmiidf[0] * tf
                 pmi1 += predicted_pmiidf[1] * tf
         embedding[-1] = pmi0
@@ -52,7 +51,7 @@ def text_embeddings(text_tokenized, words_pmis, word2text_count, N):
 data = pd.read_csv(path + filename, sep=",")
 
 # train data needed to generate pmi dictionary
-train_data = pd.read_csv(path + 'DILI_data.csv')
+train_data = pd.read_csv(path + 'DILI_data_mixed.csv')
 targets_train = train_data["Label"].values
 
 # divide texts into tokens
@@ -72,7 +71,6 @@ words_pmis = ptic.create_pmi_dict(tokenized_texts_train,
 
 # calculate embeddings
 embeddings = text_embeddings(tokenized_texts, words_pmis, word2text_count, N)
-
 
 # save embeddings
 with open(path + output, "wb") as file:

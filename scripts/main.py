@@ -4,9 +4,12 @@ import numpy as np
 import re
 import spacy
 import pickle
+import time
 from collections import defaultdict
 import pmi_tfidf_classifier as ptic
 path = "../data/"
+
+t1 = time.time()
 
 pd.set_option("display.max_rows", None, "display.max_columns", None)
 np.random.seed(250)
@@ -29,14 +32,34 @@ tokenized_test_texts = ptic.tokenization(test_data)
 
 N = len(tokenized_texts)
 word2text_count = ptic.get_word_stat( tokenized_texts )
-words_pmis = ptic.create_pmi_dict(tokenized_texts, targets_train, min_count=5)
+words_pmis = ptic.create_pmi_dict(tokenized_texts, targets_train, min_count=20)
+t2 = time.time()
+
+t3 = time.time()
 results = ptic.classify_pmi_based(words_pmis, word2text_count, tokenized_test_texts, N)
+t4 = time.time()
 
-precision = np.sum( np.logical_and(results, targets_test) ) / np.sum(targets_test)
+# Assasin
+precision = np.sum( np.logical_and(results, targets_test) ) / np.sum(results)
+
+# Eisenhover
+recall = np.sum( np.logical_and(results, targets_test) ) / np.sum(targets_test)
+
 accuracy = (results == targets_test).mean()
-print("Accuracy: %s \nPrecision: %s" % (accuracy, precision))
+FP_rate =  ((results - targets_test) == 1).sum()/np.sum(targets_test)
+FN_rate = ((results - targets_test) == -1).sum()/np.sum(targets_test == 0)
 
-words_pmis_df = pd.DataFrame.from_dict(words_pmis)
+F1 = 2 * (recall * precision)/(recall + precision)
+
+print("Accuracy: %s\t \nPrecision: %s\t \nRecall: %s\t \nF1: %s\t"  % (accuracy, precision, recall, F1))
+print("FP: %s\t \nFN: %s\t" % (FP_rate, FN_rate))
+print("Training time: %s\t min \nClassification time: %s\t min" % (round((t2 - t1)/60, 3), round((t4 - t3)/60, 3)))
+
+# Saving incorrectly classified examples
+incorrect = np.where(results != targets_test)[0]
+print(incorrect)
+incorrect_examples = test_data.iloc[list(incorrect)]
+incorrect_examples.to_csv(path + "incorrect.csv")
 
 
 
