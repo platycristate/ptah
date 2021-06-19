@@ -42,7 +42,7 @@ t4 = time.time()
 # Assasin
 precision = np.sum( np.logical_and(results, targets_test) ) / np.sum(results)
 
-# Eisenhover
+# Eisenhower
 recall = np.sum( np.logical_and(results, targets_test) ) / np.sum(targets_test)
 
 accuracy = (results == targets_test).mean()
