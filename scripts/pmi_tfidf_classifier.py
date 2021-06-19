@@ -9,7 +9,7 @@ path = "../data/"
 
 def tokenize(string):
     doc = nlp.make_doc(string)
-    words = [token.text.lower() for token in doc if token.is_alpha and not token.is_stop and len(token.text) > 3 ]
+    words = [token.text.lower() for token in doc if token.is_alpha and not token.is_stop and len(token.text) > 1 ]
     return words
 
 def tokenization(train_data):
@@ -42,8 +42,7 @@ def get_doc_tfidf(words, word2text_count, N):
     word2tfidf = defaultdict(int)
     for word in words:
         if word2text_count[word] > 0:
-            #idf = np.log(N/(word2text_count[word]))
-            idf = N/(word2text_count[word])
+            idf = np.log(N/(word2text_count[word]))
             word2tfidf[word] += (1/num_words) * idf
         else:
             word2tfidf[word] = 1
