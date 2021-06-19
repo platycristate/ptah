@@ -17,7 +17,7 @@ np.random.seed(250)
 #spacy.prefer_gpu()
 #nlp = spacy.load("en_core_sci_sm", disable=['ner', 'parser'])
 
-data_raw = pd.read_csv(path + 'DILI_data.csv')
+data_raw = pd.read_csv(path + "DILI_data.csv")
 indices = np.random.permutation(data_raw.index)
 data = data_raw.loc[indices]
 data = data_raw.sample(frac=1)

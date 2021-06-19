@@ -14,10 +14,10 @@ def tokenize(string):
 
 def tokenization(train_data):
     tokenized_texts = []
-    print("Tokenization....")
+    #print("Tokenization....")
     for _, row in train_data.iterrows():
-        #text = str(row['Abstract'])
-        text = str(row['Title']) + ' ' + str(row['Abstract'])
+        text = str(row['Abstract'])
+        #text = str(row['Title']) + ' ' + str(row['Abstract'])
         words = tokenize(text)
         tokenized_texts.append(words)
     return tokenized_texts
@@ -29,7 +29,7 @@ def get_word_stat(tokenized_texts):
     is present
     '''
     texts_number = len(tokenized_texts)
-    print("Word Stat....")
+    #print("Word Stat....")
     word2text_count = defaultdict(int)
     for text in tokenized_texts:
         uniquewords = set(text)
@@ -49,7 +49,7 @@ def get_doc_tfidf(words, word2text_count, N):
     return word2tfidf
 
 def create_pmi_dict(tokenized_texts, targets, min_count=5):
-    print("PMI dictionary ....")
+    #print("PMI dictionary ....")
     np.seterr(divide = 'ignore')
     # words count
     d = {0:defaultdict(int), 1:defaultdict(int), 'tot':defaultdict(int)}
@@ -103,7 +103,7 @@ def create_tot_pmitfidf(words, words_pmis, word2tfidf):
 
 def classify_pmi_based(words_pmis, word2text_count, tokenized_test_texts, N):
     results = np.zeros(len(tokenized_test_texts))
-    for idx, words in tqdm(enumerate(tokenized_test_texts)):
+    for idx, words in enumerate(tokenized_test_texts):
         word2tfidf = get_doc_tfidf(words, word2text_count, N)
         # PMI - determines significance of the word for the class
         # TFIDF - determines significance of the word for the document
