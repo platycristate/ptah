@@ -9,7 +9,7 @@ path = "../data/"
 
 def tokenize(string):
     doc = nlp.make_doc(string)
-    words = [token.text.lower() for token in doc if token.is_alpha and not token.is_stop and len(token.text) > 1 ]
+    words = [token.text.lower() for token in doc if token.is_alpha and not token.is_stop and len(token.text) > 3 ]
     return words
 
 def tokenization(train_data):
@@ -46,7 +46,7 @@ def get_doc_tfidf(words, word2text_count, N):
             idf = N/(word2text_count[word])
             word2tfidf[word] += (1/num_words) * idf
         else:
-            word2tfidf[word] = 0.1
+            word2tfidf[word] = 1
     return word2tfidf
 
 def create_pmi_dict(tokenized_texts, targets, min_count=5):
@@ -114,6 +114,6 @@ def classify_pmi_based(words_pmis, word2text_count, tokenized_test_texts, N):
         pmi0 = np.sum(tot_pmi0)
         pmi1 = np.sum(tot_pmi1)
         diff = pmi1 - pmi0
-        if diff > 0.006:
+        if diff > 0.001:
             results[idx] = 1
     return results
